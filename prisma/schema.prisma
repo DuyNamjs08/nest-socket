@@ -1,0 +1,876 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admin_notification {
+  id              Int       @id @default(autoincrement())
+  title           String?   @db.VarChar(255)
+  description     String?   @db.Text
+  country         String?   @db.VarChar(45)
+  status          Int?      @default(0) @db.TinyInt
+  url             String?   @db.VarChar(255)
+  created_at      DateTime? @default(now()) @db.Timestamp(0)
+  updated_at      DateTime? @default(now()) @db.Timestamp(0)
+  icon            String?   @db.VarChar(255)
+  redirect_type   String?   @db.VarChar(255)
+  ask_again       Int?      @db.TinyInt
+  repeat_duration Int?
+  button_cancel   String?   @db.VarChar(50)
+  button_oke      String?   @db.VarChar(50)
+  popup_type      String?   @default("popup") @db.VarChar(45)
+  toasts_color    String?   @db.VarChar(45)
+}
+
+model batchs {
+  id                     Int       @id @default(autoincrement())
+  user_id                Int?
+  url                    String?   @db.Text
+  shorten_link           String?   @db.VarChar(200)
+  thumbnail              String?   @db.VarChar(500)
+  thumbnails             String?   @db.LongText
+  content                String?   @db.LongText
+  type                   Int       @default(1) @db.TinyInt
+  count_post             Int?      @default(0) @db.TinyInt
+  done_post              Int?      @default(0) @db.TinyInt
+  status                 Int?      @default(1) @db.TinyInt
+  process_status         String    @default("PENDING") @db.VarChar(50)
+  updated_at             DateTime? @db.DateTime(6)
+  created_at             DateTime? @db.DateTime(6)
+  voice_google           Int?      @default(1) @db.TinyInt
+  voice_typecast         String?   @default("") @db.VarChar(100)
+  voice                  String?   @default("") @db.VarChar(100)
+  voice_type             String?   @db.VarChar(45)
+  is_advance             Int?      @db.TinyInt
+  is_paid_advertisements Int?      @db.TinyInt
+  error_code             String?   @db.VarChar(45)
+  error_message          String?   @db.Text
+  message                String?   @db.Text
+  template_info          String?   @db.LongText
+  batch_total            Int?      @default(0)
+  batch_of_month         String?   @default("") @db.VarChar(50)
+}
+
+model billing_cards {
+  id            BigInt    @id @default(autoincrement())
+  auth_key      String?   @db.VarChar(45)
+  user_id       BigInt?
+  customer_key  String?   @db.VarChar(255)
+  method        String?   @db.VarChar(255)
+  billing_key   String?   @db.VarChar(255)
+  card_company  String?   @db.VarChar(255)
+  card_number   String?   @db.VarChar(255)
+  issuer_code   String?   @db.VarChar(255)
+  acquirer_code String?   @db.VarChar(255)
+  card_type     String?   @db.VarChar(255)
+  owner_type    String?   @db.VarChar(255)
+  is_default    Int?      @default(0) @db.SmallInt
+  description   String?   @db.Text
+  created_at    DateTime? @default(now()) @db.DateTime(0)
+  updated_at    DateTime? @default(now()) @db.DateTime(0)
+}
+
+model captions {
+  id           Int       @id @default(autoincrement())
+  content      String?   @db.VarChar(500)
+  type_content String?   @db.VarChar(45)
+  status       String?   @db.VarChar(45)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+  updated_at   DateTime? @default(now()) @db.Timestamp(0)
+  description  String?   @db.LongText
+}
+
+model chatgpt_results {
+  id         Int       @id @default(autoincrement())
+  type       String?   @db.VarChar(50)
+  link_type  String?   @db.VarChar(50)
+  link       String?   @db.Text
+  item_id    String?   @db.VarChar(50)
+  vendor_id  String?   @db.VarChar(50)
+  name       String?   @db.Text
+  name_hash  String?   @db.VarChar(200)
+  response   String?   @db.LongText
+  status     Int?      @db.TinyInt
+  updated_at DateTime? @db.DateTime(0)
+  created_at DateTime? @db.DateTime(0)
+
+  @@index([type], map: "chatgpt_results_type_index")
+}
+
+model coupon_codes {
+  id                Int       @id @default(autoincrement())
+  coupon_id         Int?
+  code              String    @unique(map: "code_UNIQUE") @db.VarChar(20)
+  is_used           Int       @default(0) @db.TinyInt
+  is_active         Int?      @default(0) @db.TinyInt
+  used_at           DateTime? @db.DateTime(0)
+  used_by           Int?
+  expired_at        DateTime? @db.DateTime(0)
+  value             Int?      @default(30)
+  num_days          Int?      @default(30)
+  created_at        DateTime? @db.DateTime(0)
+  updated_at        DateTime? @db.DateTime(0)
+  total_link_active Int?      @default(7)
+  coupons           coupons?  @relation(fields: [coupon_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "coupon_code_coupon_id")
+
+  @@index([coupon_id], map: "coupon_code_coupon_id_idx")
+  @@index([used_by], map: "coupon_code_used_by")
+}
+
+model coupon_user_histories {
+  id                   Int       @id @default(autoincrement())
+  user_id              Int?
+  batch_id             Int?
+  old_batch_remain     String?   @db.VarChar(45)
+  new_batch_remain     String?   @db.VarChar(45)
+  total_link_active    Int?      @default(0)
+  type                 String?   @db.VarChar(20)
+  type_2               String?   @db.VarChar(20)
+  object_id            Int?      @default(0)
+  title                String?   @db.VarChar(255)
+  description          String?   @db.LongText
+  value                Int?
+  admin_description    String?   @db.LongText
+  subscription         String?   @db.VarChar(45)
+  subscription_expired DateTime? @db.DateTime(0)
+  created_at           DateTime? @default(now()) @db.Timestamp(0)
+  updated_at           DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model coupons {
+  id               Int            @id @default(autoincrement())
+  image            String?        @db.VarChar(500)
+  name             String         @db.VarChar(250)
+  description      String?        @db.Text
+  expired_from     DateTime?      @db.DateTime(0)
+  expired          DateTime?      @db.DateTime(0)
+  type             String?        @default("DISCOUNT") @db.VarChar(20)
+  value            Float?         @default(0) @db.Float
+  used             Int?           @default(0)
+  max_used         Int?           @default(0)
+  is_has_whitelist Int?           @default(0) @db.TinyInt
+  white_lists      String?        @db.LongText
+  is_active        Int?           @db.TinyInt
+  is_check_user    Int?           @default(0) @db.TinyInt
+  max_per_user     Int?           @default(0)
+  created_by       Int?
+  created_at       DateTime?      @db.DateTime(0)
+  updated_at       DateTime?      @db.DateTime(0)
+  plan_coupon      String?        @default("STANDARD") @db.VarChar(45)
+  coupon_codes     coupon_codes[]
+}
+
+model crawl_datas {
+  id             Int       @id @default(autoincrement()) @db.UnsignedInt
+  site           String    @db.VarChar(100)
+  input_url      String    @db.Text
+  crawl_url      String    @db.VarChar(500)
+  crawl_url_hash String    @db.VarChar(100)
+  request        String?   @db.Text
+  response       String?   @db.LongText
+  updated_at     DateTime? @db.DateTime(0)
+  created_at     DateTime? @db.DateTime(0)
+
+  @@index([crawl_url_hash], map: "crawl_datas_crawl_url_hash_IDX")
+}
+
+model groups_product {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  name        String    @db.VarChar(255)
+  order_no    Int?      @default(0)
+  description String?   @db.Text
+  created_at  DateTime? @default(now()) @db.DateTime(0)
+  updated_at  DateTime? @default(now()) @db.DateTime(0)
+  title_type  String?   @db.VarChar(45)
+}
+
+model image_templates {
+  id                    Int       @id @default(autoincrement())
+  template_name         String?   @default("") @db.VarChar(255)
+  template_code         String?   @default("") @db.VarChar(50)
+  template_image        String?   @default("") @db.VarChar(255)
+  font                  String?   @default("") @db.VarChar(255)
+  font_name             String?   @default("") @db.VarChar(255)
+  font_path             String?   @default("") @db.VarChar(255)
+  font_size             Int?      @default(0)
+  main_text_color       String?   @default("random_color") @db.VarChar(255)
+  text_color            String?   @default("#FFFFFF") @db.VarChar(255)
+  stroke_color          String?   @default("#000000") @db.VarChar(255)
+  stroke_width          Int?      @default(5)
+  text_shadow           String?   @db.VarChar(255)
+  text_align            String?   @default("left") @db.VarChar(255)
+  text_position         String?   @default("center") @db.VarChar(255)
+  text_position_x       Int?      @default(0)
+  text_position_y       Int?      @default(0)
+  background            String?   @default("random_color") @db.VarChar(255)
+  background_color      String?   @default("") @db.VarChar(255)
+  background_image      String?   @default("") @db.VarChar(255)
+  padding               String?   @default("") @db.VarChar(255)
+  margin                String?   @db.VarChar(255)
+  type                  String?   @default("TEMPLATE_IMAGE_1") @db.VarChar(50)
+  other_font_path       String?   @db.VarChar(255)
+  other_font_size       Int?      @default(80)
+  other_text_color      String?   @default("#FFFFFF") @db.VarChar(255)
+  other_margin          String?   @db.VarChar(255)
+  other_stroke_color    String?   @default("#000000") @db.VarChar(255)
+  other_stroke_width    Int?      @default(5)
+  other_text_shadow     String?   @default("") @db.VarChar(255)
+  other_text_align      String?   @default("left") @db.VarChar(255)
+  other_text_position   String?   @default("center") @db.VarChar(255)
+  is_create_first_image Int?      @default(1) @db.TinyInt
+  is_blur               Int?      @default(0) @db.TinyInt
+  is_overlay_background Int?      @default(0) @db.TinyInt
+  overlay_color         String?   @default("#000000") @db.VarChar(45)
+  layout                String?   @default("center") @db.VarChar(45)
+  background_type       String?   @default("color") @db.VarChar(45)
+  logo_path             String?   @db.VarChar(255)
+  logo_size             String?   @default("100,100") @db.VarChar(50)
+  logo_position         String?   @default("bottom_right") @db.VarChar(50)
+  created_by            Int?      @default(0)
+  sort                  Int?      @default(0)
+  status                String?   @default("ACTIVE") @db.VarChar(50)
+  updated_at            DateTime? @db.DateTime(0)
+  created_at            DateTime? @db.DateTime(0)
+}
+
+model link_send_log {
+  id          Int       @id @default(autoincrement())
+  link_id     Int
+  post_id     Int
+  request_url String?   @db.VarChar(500)
+  request     String?   @db.Text
+  response    String?   @db.Text
+  status      Int       @default(1)
+  updated_at  DateTime? @db.DateTime(0)
+  created_at  DateTime? @db.DateTime(0)
+
+  @@index([link_id], map: "link_send_log_link_id")
+  @@index([post_id], map: "link_send_log_post_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model links {
+  id          Int          @id @default(autoincrement())
+  avatar      String       @db.VarChar(255)
+  title       String       @db.VarChar(255)
+  description String?      @db.Text
+  need_info   String?      @db.Text
+  type        String       @default("FACEBOOK") @db.VarChar(50)
+  social_type String?      @default("SOCIAL") @db.VarChar(50)
+  status      Int?         @default(1) @db.TinyInt
+  updated_at  DateTime?    @db.DateTime(6)
+  created_at  DateTime?    @db.DateTime(6)
+  user_links  user_links[]
+}
+
+model member_profiles {
+  id                   Int       @id @default(autoincrement())
+  user_id              Int
+  nick_name            String?   @default("") @db.VarChar(500)
+  member_name          String?   @default("") @db.VarChar(500)
+  member_avatar        String?   @default("") @db.VarChar(500)
+  member_background    String?   @db.VarChar(500)
+  member_address       String?   @db.Text
+  design_settings      String?   @db.Text
+  content              String?   @db.Text
+  description          String?   @db.Text
+  status               Int?      @default(1)
+  created_at           DateTime? @default(now()) @db.DateTime(0)
+  updated_at           DateTime? @default(now()) @db.DateTime(0)
+  social_is_thread     Int?      @default(0)
+  social_thread_url    String?   @db.VarChar(500)
+  social_is_youtube    Int?
+  social_youtube_url   String?   @db.VarChar(500)
+  social_is_x          Int?
+  social_x_url         String?   @db.VarChar(500)
+  social_is_instagram  Int?
+  social_instagram_url String?   @db.VarChar(500)
+  social_is_tiktok     Int?
+  social_tiktok_url    String?   @db.VarChar(500)
+  social_is_facebook   Int?
+  social_facebook_url  String?   @db.VarChar(500)
+  social_is_spotify    Int?
+  social_spotify_url   String?   @db.VarChar(500)
+  guide_info           String?   @db.Text
+}
+
+model month_texts {
+  id         Int       @id @default(autoincrement())
+  keyword    String?   @default("") @db.VarChar(255)
+  hashtag    String?   @default("") @db.VarChar(255)
+  month      String    @default("") @db.VarChar(50)
+  status     String    @default("ACTIVE") @db.VarChar(50)
+  updated_at DateTime? @db.DateTime(0)
+  created_at DateTime? @db.DateTime(0)
+
+  @@index([month], map: "month_texts_month")
+}
+
+model notifications {
+  id                     Int       @id @default(autoincrement())
+  notification_type      String?   @default("video") @db.VarChar(50)
+  user_id                Int?
+  batch_id               Int?
+  post_id                Int?
+  thumbnail              String?   @db.VarChar(500)
+  images                 String?   @db.Text
+  captions               String?   @db.Text
+  title                  String?   @db.VarChar(2048)
+  description            String?   @db.Text
+  hooking                String?   @db.Text
+  content                String?   @db.Text
+  video_url              String?   @db.VarChar(255)
+  hashtag                String?   @db.Text
+  status                 Int?      @default(1) @db.TinyInt
+  render_id              String?   @db.VarChar(45)
+  updated_at             DateTime? @default(now()) @db.Timestamp(0)
+  created_at             DateTime? @default(now()) @db.Timestamp(0)
+  social_sns_description String?   @db.LongText
+  status_sns             Int?      @default(0)
+  is_read                Int?      @default(0)
+  send_telegram          Int?      @default(0)
+  description_korea      String?   @db.Text
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model ocr_results {
+  id         Int       @id @default(autoincrement())
+  image_url  String?   @db.Text
+  image_hash String?   @db.VarChar(200)
+  response   String?   @db.LongText
+  status     Int?      @db.TinyInt
+  updated_at DateTime? @db.DateTime(0)
+  created_at DateTime? @db.DateTime(0)
+
+  @@index([image_hash], map: "ocr_results_image_hash_index")
+}
+
+model payment_details {
+  id          Int       @id @default(autoincrement())
+  user_id     Int?
+  payment_id  Int?
+  amount      Int?      @default(0)
+  price       Int?      @default(0)
+  description String?   @db.LongText
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model payment_logs {
+  id            Int       @id @default(autoincrement())
+  payment_id    Int?
+  raw_response  String?   @db.Text
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+  status_code   String?   @db.VarChar(45)
+  response_json String?   @db.Text
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  description   String?   @db.Text
+}
+
+model payments {
+  id              Int              @id @default(autoincrement())
+  parent_id       Int?
+  package_name    String?          @db.VarChar(50)
+  user_id         Int?
+  order_id        String?          @db.VarChar(255)
+  payment_key     String?          @db.VarChar(255)
+  customer_name   String?          @db.VarChar(100)
+  amount          Int?             @default(0)
+  price           Int?             @default(0)
+  total_link      Int?             @default(0)
+  total_create    Int?             @default(0)
+  method          String?          @db.VarChar(50)
+  requested_at    DateTime?        @db.DateTime(0)
+  start_date      DateTime?        @default(now()) @db.Timestamp(0)
+  end_date        DateTime?        @db.Timestamp(0)
+  status          payments_status? @default(PENDING)
+  approved_at     DateTime?        @db.DateTime(0)
+  fail_reason     String?          @db.Text
+  created_at      DateTime?        @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?        @default(now()) @db.Timestamp(0)
+  payment_method  String?          @db.VarChar(50)
+  payment_status  String?          @db.VarChar(50)
+  payment_date    DateTime?        @db.Timestamp(0)
+  payment_data    String?          @db.LongText
+  description     String?          @db.LongText
+  is_renew        Int?             @default(0)
+  next_payment    Int?             @default(0)
+  next_total_link Int?
+  used_created    Int?             @default(0)
+  order_type      Int?             @default(0)
+}
+
+model posts {
+  id                     Int       @id @default(autoincrement())
+  type                   String?   @default("video") @db.VarChar(10)
+  user_id                Int?
+  batch_id               Int?
+  thumbnail              String?   @db.VarChar(500)
+  images                 String?   @db.Text
+  captions               String?   @db.Text
+  title                  String?   @db.VarChar(500)
+  description            String?   @db.Text
+  hooking                String?   @db.Text
+  content                String?   @db.LongText
+  video_url              String?   @db.VarChar(255)
+  docx_url               String?   @db.VarChar(255)
+  hashtag                String?   @db.Text
+  status                 Int?      @default(1) @db.TinyInt
+  render_id              String?   @db.VarChar(45)
+  mime_type              String?   @default("") @db.VarChar(250)
+  file_size              String?   @default("") @db.VarChar(45)
+  process_number         Int?      @default(0)
+  subtitle               String?   @db.VarChar(500)
+  updated_at             DateTime? @db.DateTime(6)
+  created_at             DateTime? @db.DateTime(6)
+  social_sns_description String?   @db.LongText
+  status_sns             Int?      @default(0)
+  process_status         String?   @default("PENDING") @db.VarChar(45)
+  error_message          String?   @db.Text
+  video_path             String?   @db.VarChar(255)
+  schedule_date          DateTime? @db.DateTime(6)
+  images_s3              String?   @db.Text
+}
+
+model products {
+  id               Int       @id @default(autoincrement())
+  group_id         Int?      @default(0)
+  user_id          Int?
+  product_url      String?   @db.Text
+  product_url_hash String?   @default("") @db.VarChar(500)
+  shorten_link     String?   @db.VarChar(500)
+  product_name     String?   @default("") @db.VarChar(1024)
+  product_image    String?   @db.VarChar(1024)
+  price            String?   @db.VarChar(20)
+  content          String?   @db.LongText
+  description      String?   @db.LongText
+  status           Int?      @default(1)
+  created_at       DateTime? @default(now()) @db.DateTime(0)
+  updated_at       DateTime? @default(now()) @db.DateTime(0)
+  order_no         Int?      @default(0)
+}
+
+model referral_history {
+  id               Int       @id @default(autoincrement())
+  referrer_user_id Int?
+  referred_user_id Int?
+  referral_code    String?   @db.VarChar(45)
+  created_at       DateTime? @default(now()) @db.DateTime(0)
+  updated_at       DateTime? @default(now()) @db.DateTime(0)
+  expired_at       DateTime? @default(now()) @db.DateTime(0)
+  status           String?   @default("PENDING") @db.VarChar(45)
+  days             Int?      @default(7)
+}
+
+model refunds {
+  id            Int       @id @default(autoincrement())
+  payment_id    BigInt?
+  user_id       BigInt?
+  amount        Int?
+  orgin_price   Int?      @default(0)
+  reason        String?   @db.Text
+  status        Int?      @default(0) @db.TinyInt
+  admin_note    String?   @db.Text
+  package_name  String?   @db.VarChar(255)
+  customer_name String?   @db.VarChar(255)
+  type_payment  String?   @db.VarChar(45)
+  requested_at  DateTime? @db.DateTime(0)
+  processed_at  DateTime? @db.DateTime(0)
+  created_at    DateTime? @default(now()) @db.DateTime(0)
+  updated_at    DateTime? @default(now()) @db.DateTime(0)
+}
+
+model request_logs {
+  id                                    Int       @id @default(autoincrement())
+  post_id                               String    @db.VarChar(200)
+  ai_type                               String    @db.VarChar(10)
+  request                               String?   @db.LongText
+  response                              String?   @db.LongText
+  prompt_tokens                         Int       @default(0)
+  prompt_cache_tokens                   Int       @default(0)
+  prompt_audio_tokens                   Int       @default(0)
+  completion_tokens                     Int       @default(0)
+  completion_reasoning_tokens           Int       @default(0)
+  completion_audio_tokens               Int       @default(0)
+  completion_accepted_prediction_tokens Int       @default(0)
+  completion_rejected_prediction_tokens Int       @default(0)
+  total_tokens                          Int       @default(0)
+  status                                Int       @default(1) @db.TinyInt
+  updated_at                            DateTime? @db.DateTime(6)
+  created_at                            DateTime? @db.DateTime(6)
+
+  @@index([ai_type])
+  @@index([post_id])
+}
+
+model request_social_counts {
+  id         Int       @id @default(autoincrement())
+  social     String    @db.VarChar(50)
+  user_id    Int?      @default(0)
+  count      Int?      @default(0)
+  day        String    @default("") @db.VarChar(50)
+  hour       String    @default("") @db.VarChar(50)
+  updated_at DateTime? @db.DateTime(0)
+  created_at DateTime? @db.DateTime(0)
+}
+
+model request_social_logs {
+  id             Int       @id @default(autoincrement())
+  social         String?   @db.VarChar(50)
+  user_id        Int
+  type           String?   @db.VarChar(50)
+  social_post_id Int?      @default(0)
+  request        String?   @db.Text
+  response       String?   @db.LongText
+  updated_at     DateTime? @db.DateTime(0)
+  created_at     DateTime? @db.DateTime(0)
+
+  @@index([social], map: "request_social_logs_social")
+  @@index([user_id], map: "request_social_logs_user_id")
+}
+
+model schedules {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  video_id   Int?
+  date       DateTime? @db.Date
+  title      String?   @db.VarChar(255)
+  status     Int?      @default(1) @db.TinyInt
+  updated_at DateTime? @db.DateTime(6)
+  created_at DateTime? @db.DateTime(6)
+}
+
+model setting {
+  id            Int       @id @default(autoincrement())
+  setting_name  String?   @db.VarChar(45)
+  setting_value String?   @db.VarChar(500)
+  status        Int?      @default(1)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model shorten_url {
+  id                Int       @id @default(autoincrement())
+  original_url      String?   @db.VarChar(2048)
+  original_url_hash String?   @db.VarChar(100)
+  short_code        String?   @db.VarChar(45)
+  status            String?   @db.VarChar(45)
+  count             Int?      @default(0)
+  created_at        DateTime? @default(now()) @db.Timestamp(0)
+  updated_at        DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([short_code], map: "shorten_url_code")
+  @@index([original_url_hash], map: "shorten_url_original_url_hash")
+}
+
+model social_accounts {
+  id               Int       @id @default(autoincrement())
+  user_id          Int
+  provider         String    @db.VarChar(50)
+  provider_user_id String    @db.VarChar(100)
+  access_token     String?   @db.Text
+  updated_at       DateTime? @db.DateTime(0)
+  created_at       DateTime? @db.DateTime(0)
+  users            users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "social_accounts_user_id")
+
+  @@index([provider], map: "social_account_provider")
+  @@index([provider, provider_user_id], map: "social_account_provider_provider_user_id")
+  @@index([user_id, provider], map: "social_account_user_id_provider")
+  @@index([user_id])
+}
+
+model social_post_created {
+  id         Int       @id @default(autoincrement())
+  social     String    @db.VarChar(50)
+  user_id    Int?      @default(0)
+  count      Int?      @default(0)
+  day        String?   @db.VarChar(50)
+  updated_at DateTime? @db.DateTime(0)
+  created_at DateTime? @db.DateTime(0)
+}
+
+model social_posts {
+  id              Int       @id @default(autoincrement())
+  link_id         Int
+  user_id         Int
+  batch_id        Int?
+  post_id         Int
+  sync_id         Int?      @default(0)
+  session_key     String?   @db.VarChar(100)
+  social_link     String?   @db.VarChar(700)
+  status          String?   @default("PUBLISHED") @db.VarChar(50)
+  error_message   String?   @db.LongText
+  show_message    String?   @db.LongText
+  process_number  Int?      @default(0)
+  disable_comment Int?      @default(0) @db.TinyInt
+  auto_add_music  Int?      @default(0) @db.TinyInt
+  privacy_level   String?   @default("SELF_ONLY") @db.VarChar(50)
+  disable_duet    Int?      @default(0) @db.TinyInt
+  disable_stitch  Int?      @db.TinyInt
+  instagram_quote String?   @db.LongText
+  updated_at      DateTime? @db.DateTime(0)
+  created_at      DateTime? @db.DateTime(0)
+
+  @@index([link_id], map: "social_posts_link_id")
+  @@index([post_id], map: "social_posts_post_id")
+  @@index([user_id], map: "social_posts_user_id")
+}
+
+model social_syncs {
+  id              Int       @id @default(autoincrement())
+  user_id         Int       @default(0)
+  in_post_ids     String?   @db.Text
+  post_ids        String?   @db.Text
+  social_post_ids String?   @db.Text
+  status          String?   @default("") @db.VarChar(50)
+  process_number  Int?      @default(0)
+  updated_at      DateTime? @db.DateTime(0)
+  created_at      DateTime? @db.DateTime(0)
+}
+
+model tiktok_callback {
+  id                Int       @id @default(autoincrement())
+  code              String?   @db.Text
+  state             String?   @db.Text
+  response          String?   @db.Text
+  error             String?   @db.Text
+  error_description String?   @db.Text
+  updated_at        DateTime? @db.DateTime(0)
+  created_at        DateTime? @db.DateTime(0)
+}
+
+model user_histories {
+  id                Int       @id @default(autoincrement())
+  user_id           Int?
+  used_created      Int?      @default(0)
+  order_type        Int?      @default(0) @db.SmallInt
+  expire_checked    Int?      @default(0) @db.SmallInt
+  expire_checked_at DateTime? @db.Timestamp(0)
+  type              String?   @db.VarChar(20)
+  type_2            String?   @db.VarChar(20)
+  object_id         Int?      @default(0)
+  object_start_time DateTime? @db.DateTime(0)
+  object_end_time   DateTime? @db.DateTime(0)
+  title             String?   @db.VarChar(255)
+  description       String?   @db.LongText
+  value             Int?
+  num_days          Int?
+  created_at        DateTime? @default(now()) @db.Timestamp(0)
+  updated_at        DateTime? @default(now()) @db.Timestamp(0)
+  admin_description String?   @db.LongText
+  total_link_active Int?      @default(0)
+}
+
+model user_links {
+  id             Int       @id @default(autoincrement())
+  user_id        Int
+  link_id        Int
+  social_id      String?   @db.VarChar(150)
+  username       String?   @db.VarChar(150)
+  name           String?   @db.VarChar(500)
+  avatar         String?   @db.VarChar(1024)
+  url            String?   @db.VarChar(1024)
+  meta           String?   @db.Text
+  status         Int       @default(1) @db.TinyInt
+  youtube_client String?   @db.Text
+  warning        Int?      @default(0) @db.TinyInt
+  expired_date   DateTime? @db.Date
+  expired_at     DateTime? @db.DateTime(0)
+  updated_at     DateTime? @db.DateTime(6)
+  created_at     DateTime? @db.DateTime(6)
+  meta_url       String?   @db.VarChar(1024)
+  page_id        String?   @db.VarChar(255)
+  links          links     @relation(fields: [link_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_link_link_id")
+  users          users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_link_user_id")
+
+  @@index([expired_date], map: "user_link_expired_date")
+  @@index([link_id], map: "user_link_link_id_idx")
+  @@index([user_id], map: "user_link_user_id_idx")
+}
+
+model user_video_templates {
+  id                     Int       @id @default(autoincrement())
+  user_id                Int?      @default(0)
+  is_paid_advertisements Int?      @default(0) @db.TinyInt
+  product_name           String?   @default("") @db.VarChar(500)
+  is_caption_top         Int?      @default(0) @db.TinyInt
+  is_product_name        Int?      @default(0) @db.TinyInt
+  purchase_guide         String?   @default("") @db.VarChar(500)
+  is_purchase_guide      Int?      @default(0) @db.TinyInt
+  voice_gender           Int?      @default(0) @db.TinyInt
+  voice_id               Int?      @default(0) @db.TinyInt
+  is_video_hooking       Int?      @default(0) @db.TinyInt
+  is_caption_last        Int?      @default(0) @db.TinyInt
+  image_template_id      String?   @default("1") @db.VarChar(500)
+  updated_at             DateTime? @default(now()) @db.Timestamp(0)
+  created_at             DateTime? @default(now()) @db.Timestamp(0)
+  image_template         String?   @db.Text
+  video_hooks            String?   @db.Text
+  viral_messages         String?   @db.Text
+  subscribe_video        String?   @db.Text
+  narration              String?   @default("male") @db.VarChar(45)
+  link_sns               String?   @db.Text
+  comment                String?   @db.VarChar(255)
+  hashtag                String?   @db.Text
+  is_comment             Int?      @default(0) @db.TinyInt
+  is_hashtag             Int?      @default(0) @db.TinyInt
+  is_product_description Int?      @db.TinyInt
+  product_description    String?   @db.VarChar(500)
+  is_product_pin         Int?      @db.TinyInt
+  product_pin            String?   @db.VarChar(500)
+  typecast_voice         String?   @db.VarChar(100)
+  voice                  String?   @default("") @db.VarChar(100)
+  voice_type             String?   @default("google") @db.VarChar(45)
+  is_advance             Int?      @default(0) @db.TinyInt
+}
+
+model video_image_ai {
+  id      Int   @id @default(autoincrement())
+  user_id Int // user nào tạo request
+  users   users @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  type        String // "video" | "image"
+  description String // mô tả cho video hoặc hình ảnh
+  prompt      String // prompt AI dùng để generate
+  url         Json?     @default("[]") // link file trên S3
+  status      String    @default("pending") // pending | processing | done | failed
+  updated_at  DateTime? @default(now()) @db.Timestamp(0)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  deleted_at  DateTime? @db.DateTime(0)
+
+  @@index([user_id])
+  @@index([status])
+  @@index([created_at])
+  @@index([user_id, status])
+}
+
+model users {
+  id                   Int               @id @default(autoincrement())
+  subscription         String?           @default("FREE") @db.VarChar(100)
+  subscription_expired DateTime?         @db.DateTime(0)
+  username             String?           @db.VarChar(50)
+  name                 String?           @db.VarChar(255)
+  avatar               String?           @db.VarChar(500)
+  email                String?           @db.VarChar(150)
+  password             String?           @db.VarChar(100)
+  status               Int               @default(1) @db.TinyInt
+  updated_at           DateTime?         @default(now()) @db.Timestamp(0)
+  created_at           DateTime?         @default(now()) @db.Timestamp(0)
+  deleted_at           DateTime?         @db.DateTime(0)
+  auth_token_youtube   String?           @db.VarChar(255)
+  auth_token_facebook  String?           @db.VarChar(255)
+  auth_token_tiktok    String?           @db.VarChar(255)
+  auth_token_x         String?           @db.VarChar(255)
+  auth_token_instagram String?           @db.VarChar(255)
+  auth_token_threads   String?           @db.VarChar(255)
+  last_activated       DateTime?         @default(now()) @db.Timestamp(0)
+  phone                String?           @db.VarChar(255)
+  contact              String?           @db.VarChar(255)
+  company_name         String?           @db.VarChar(255)
+  level                Int?              @default(0) @db.TinyInt
+  level_info           String?           @db.Text
+  user_type            Int?              @default(0) @db.TinyInt
+  batch_total          Int?              @default(10)
+  batch_remain         Int?              @default(10)
+  batch_of_month       String?           @default("") @db.VarChar(50)
+  ali_express_info     String?           @db.Text
+  ali_express_active   Int?              @default(0) @db.TinyInt
+  batch_sns_total      Int?              @default(0)
+  batch_sns_remain     Int?              @default(0)
+  batch_no_limit_sns   Int?              @default(0) @db.TinyInt
+  is_auth_nice         Int?              @default(0) @db.TinyInt
+  is_verify_email      Int?              @default(0) @db.TinyInt
+  auth_nice_result     String?           @db.Text
+  gender               String?           @db.VarChar(255)
+  password_certificate String?           @db.VarChar(255)
+  referral_code        String?           @db.VarChar(45)
+  total_link_active    Int?              @default(0)
+  referrer_user_id     Int?              @default(0)
+  customerKey          String?           @db.VarChar(45)
+  card_info            String?           @db.Text
+  is_auto_payment      Int?              @default(0)
+  social_accounts      social_accounts[]
+  user_links           user_links[]
+  video_image_ai       video_image_ai[]
+
+  @@index([email], map: "email")
+}
+
+model video_create {
+  id                Int       @id @default(autoincrement())
+  post_id           String?   @db.VarChar(200)
+  render_id         String?   @db.VarChar(45)
+  user_id           Int?
+  product_name      String?   @db.VarChar(500)
+  images_url        String?   @db.Text
+  status            String?   @default("queued") @db.VarChar(45)
+  hash_tags         String?   @db.VarChar(500)
+  description       String?   @db.Text
+  created_at        DateTime? @default(now()) @db.Timestamp(0)
+  updated_at        DateTime? @default(now()) @db.Timestamp(0)
+  video_url         String?   @db.VarChar(500)
+  google_driver_url String?   @db.VarChar(500)
+  captions          String?   @db.Text
+  origin_caption    String?   @db.Text
+}
+
+model video_viral {
+  id          Int       @id @default(autoincrement())
+  category_id Int?      @default(0)
+  video_name  String?   @db.VarChar(500)
+  video_url   String?   @db.VarChar(500)
+  status      Int?
+  duration    Float?    @default(0) @db.Float
+  description String?   @db.LongText
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.Timestamp(0)
+  type        String?   @default("video") @db.VarChar(45)
+}
+
+model voices {
+  id                  Int       @id @default(autoincrement())
+  string_id           String    @db.VarChar(255)
+  name                String    @db.VarChar(255)
+  name_en             String    @db.VarChar(255)
+  name_google         String?   @default("") @db.VarChar(255)
+  gender              String    @db.VarChar(10)
+  image_url           String?   @db.VarChar(1024)
+  audio_url           String    @db.VarChar(1024)
+  type                String    @db.VarChar(20)
+  styles              String?   @db.Text
+  volumn              Float     @db.Float
+  speed_x             Float     @db.Float
+  tempo               Float     @db.Float
+  emotion_tone_preset String    @db.VarChar(255)
+  model_version       String    @db.VarChar(255)
+  xapi_audio_format   String    @db.VarChar(255)
+  xapi_hd             Boolean
+  order               Int?      @default(0) @db.TinyInt
+  created_at          DateTime? @db.DateTime(0)
+  updated_at          DateTime? @db.DateTime(0)
+
+  @@index([string_id], map: "ix_voices_string_id")
+}
+
+model youtube_clients {
+  id            Int       @id @default(autoincrement())
+  user_ids      String    @db.LongText
+  member_count  Int?      @default(0)
+  project_name  String?   @db.VarChar(100)
+  client_id     String    @db.VarChar(150)
+  client_secret String    @db.VarChar(150)
+  status        Int?      @default(1) @db.TinyInt
+  updated_at    DateTime? @db.DateTime(0)
+  created_at    DateTime? @db.DateTime(0)
+}
+
+enum payments_status {
+  PENDING
+  PAID
+  FAILED
+}
