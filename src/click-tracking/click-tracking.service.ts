@@ -19,7 +19,7 @@ export class ClickProducerService {
 
   async sendClickEvent(event: any) {
     try {
-      await this.queue.add('productClick', event, {
+      const job = await this.queue.add('productClick', event, {
         attempts: 5,
         backoff: { type: 'exponential', delay: 500 }, // retry với delay tăng dần
       });
@@ -32,19 +32,28 @@ export class ClickProducerService {
 
   // flush DB được gọi từ service khác
   async flushToMongo(data: any) {
+    const { user_email, clicked_at, ip, product_id, user_id, count } = data;
     try {
-      const count = await this.redis.get(`product:click:${data.product_id}`);
-      if (count) {
-        await this.productClickModel.updateOne(
-          { ...data },
-          { $inc: { count: parseInt(count, 10) } },
-          { upsert: true },
-        );
+      if (count && count > 0) {
+        const updatedDoc = await this.productClickModel.findOneAndUpdate(
+          { product_id, user_id },
+          { $inc: { count: parseInt(count, 10) }, $set: { user_email, clicked_at, ip } },
+          { upsert: true, new: true },
+        ).lean()
         await this.redis.del(`product:click:${data.product_id}`);
+        return updatedDoc;
       }
     } catch (err) {
       console.error('Failed to flush clicks to Mongo', data.product_id, err);
       // retry later hoặc push lại job vào queue
+    }
+  }
+  async getListCountClickByUserProduct(data: any) {
+    try {
+      const clicks = await this.productClickModel.find({ user_id: data.user_id });
+      return clicks;
+    } catch (err) {
+      console.error('Failed to get click count from Mongo', err);
     }
   }
 }

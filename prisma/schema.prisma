@@ -373,36 +373,38 @@ model payment_logs {
 }
 
 model payments {
-  id              Int              @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   parent_id       Int?
-  package_name    String?          @db.VarChar(50)
+  package_name    String?   @db.VarChar(50)
   user_id         Int?
-  order_id        String?          @db.VarChar(255)
-  payment_key     String?          @db.VarChar(255)
-  customer_name   String?          @db.VarChar(100)
-  amount          Int?             @default(0)
-  price           Int?             @default(0)
-  total_link      Int?             @default(0)
-  total_create    Int?             @default(0)
-  method          String?          @db.VarChar(50)
-  requested_at    DateTime?        @db.DateTime(0)
-  start_date      DateTime?        @default(now()) @db.Timestamp(0)
-  end_date        DateTime?        @db.Timestamp(0)
-  status          payments_status? @default(PENDING)
-  approved_at     DateTime?        @db.DateTime(0)
-  fail_reason     String?          @db.Text
-  created_at      DateTime?        @default(now()) @db.Timestamp(0)
-  updated_at      DateTime?        @default(now()) @db.Timestamp(0)
-  payment_method  String?          @db.VarChar(50)
-  payment_status  String?          @db.VarChar(50)
-  payment_date    DateTime?        @db.Timestamp(0)
-  payment_data    String?          @db.LongText
-  description     String?          @db.LongText
-  is_renew        Int?             @default(0)
-  next_payment    Int?             @default(0)
+  order_id        String?   @db.VarChar(255)
+  payment_key     String?   @db.VarChar(255)
+  customer_name   String?   @db.VarChar(100)
+  customer_email  String?   @db.VarChar(100)
+  amount          Int?      @default(0)
+  price           Int?      @default(0)
+  total_link      Int?      @default(0)
+  total_create    Int?      @default(0)
+  method          String?   @db.VarChar(50)
+  requested_at    DateTime? @db.DateTime(0)
+  start_date      DateTime? @default(now()) @db.Timestamp(0)
+  end_date        DateTime? @db.Timestamp(0)
+  status          String?   @default("PENDING") @db.VarChar(20)
+  approved_at     DateTime? @db.DateTime(0)
+  fail_reason     String?   @db.Text
+  created_at      DateTime? @default(now()) @db.Timestamp(0)
+  updated_at      DateTime? @default(now()) @db.Timestamp(0)
+  payment_method  String?   @db.VarChar(50)
+  payment_status  String?   @db.VarChar(50)
+  payment_date    DateTime? @db.Timestamp(0)
+  payment_data    String?   @db.LongText
+  description     String?   @db.LongText
+  is_renew        Int?      @default(0)
+  next_payment    Int?      @default(0)
   next_total_link Int?
-  used_created    Int?             @default(0)
-  order_type      Int?             @default(0)
+  used_created    Int?      @default(0)
+  order_type      Int?      @default(0)
+  is_send_email   Int?      @default(1) @db.SmallInt
 }
 
 model posts {
@@ -453,6 +455,9 @@ model products {
   created_at       DateTime? @default(now()) @db.DateTime(0)
   updated_at       DateTime? @default(now()) @db.DateTime(0)
   order_no         Int?      @default(0)
+  counts           Int?      @default(0)
+
+  @@index([id, user_id])
 }
 
 model referral_history {
@@ -468,21 +473,23 @@ model referral_history {
 }
 
 model refunds {
-  id            Int       @id @default(autoincrement())
-  payment_id    BigInt?
-  user_id       BigInt?
-  amount        Int?
-  orgin_price   Int?      @default(0)
-  reason        String?   @db.Text
-  status        Int?      @default(0) @db.TinyInt
-  admin_note    String?   @db.Text
-  package_name  String?   @db.VarChar(255)
-  customer_name String?   @db.VarChar(255)
-  type_payment  String?   @db.VarChar(45)
-  requested_at  DateTime? @db.DateTime(0)
-  processed_at  DateTime? @db.DateTime(0)
-  created_at    DateTime? @default(now()) @db.DateTime(0)
-  updated_at    DateTime? @default(now()) @db.DateTime(0)
+  id               Int       @id @default(autoincrement())
+  payment_id       BigInt?
+  user_id          BigInt?
+  amount           Int?
+  origin_price     Int?      @default(0)
+  reason           String?   @db.Text
+  status           Int?      @default(0) @db.TinyInt
+  admin_note       String?   @db.Text
+  package_name     String?   @db.VarChar(255)
+  customer_name    String?   @db.VarChar(255)
+  type_payment     String?   @db.VarChar(45)
+  requested_at     DateTime? @db.DateTime(0)
+  processed_at     DateTime? @db.DateTime(0)
+  created_at       DateTime? @default(now()) @db.DateTime(0)
+  updated_at       DateTime? @default(now()) @db.DateTime(0)
+  toss_description String?   @db.Text
+  response_json    String?   @db.Text
 }
 
 model request_logs {
@@ -729,26 +736,6 @@ model user_video_templates {
   is_advance             Int?      @default(0) @db.TinyInt
 }
 
-model video_image_ai {
-  id      Int   @id @default(autoincrement())
-  user_id Int // user nào tạo request
-  users   users @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  type        String // "video" | "image"
-  description String // mô tả cho video hoặc hình ảnh
-  prompt      String // prompt AI dùng để generate
-  url         Json?     @default("[]") // link file trên S3
-  status      String    @default("pending") // pending | processing | done | failed
-  updated_at  DateTime? @default(now()) @db.Timestamp(0)
-  created_at  DateTime? @default(now()) @db.Timestamp(0)
-  deleted_at  DateTime? @db.DateTime(0)
-
-  @@index([user_id])
-  @@index([status])
-  @@index([created_at])
-  @@index([user_id, status])
-}
-
 model users {
   id                   Int               @id @default(autoincrement())
   subscription         String?           @default("FREE") @db.VarChar(100)
@@ -796,7 +783,6 @@ model users {
   is_auto_payment      Int?              @default(0)
   social_accounts      social_accounts[]
   user_links           user_links[]
-  video_image_ai       video_image_ai[]
 
   @@index([email], map: "email")
 }
@@ -869,8 +855,21 @@ model youtube_clients {
   created_at    DateTime? @db.DateTime(0)
 }
 
-enum payments_status {
-  PENDING
-  PAID
-  FAILED
+model send_email_payments {
+  id                BigInt    @id @default(autoincrement())
+  payment_id        BigInt
+  template_name     String?   @db.VarChar(45)
+  email_title       String?   @db.VarChar(255)
+  user_id           BigInt?
+  customer_name     String?   @db.VarChar(255)
+  customer_email    String?   @db.VarChar(255)
+  start_send_email  DateTime? @db.Date
+  amount            Decimal?  @default(0.00) @db.Decimal(12, 2)
+  is_sent           Int?      @default(0) @db.TinyInt
+  status_send_email String?   @db.VarChar(50)
+  created_at        DateTime? @default(now()) @db.DateTime(0)
+  updated_at        DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([start_send_email, is_sent], map: "idx_send_email_date")
+  @@index([user_id], map: "idx_send_email_user")
 }

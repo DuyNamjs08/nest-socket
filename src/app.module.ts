@@ -16,6 +16,7 @@ import { ClickTrackingModule } from './click-tracking/click-tracking.module';
 import mongoConfig from './configs/mongo.config';
 import { ProductClick, ProductClickSchema } from './click-tracking/model/click-tracking.schema';
 import { RedisModule } from './redis/redis.module';
+import { BullModule } from '@nestjs/bullmq';
 
 
 
@@ -26,6 +27,17 @@ import { RedisModule } from './redis/redis.module';
       load: [mongoConfig], // load file config
     }),
     RedisModule,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.get<string>('REDIS_HOST') || 'localhost',
+          port: parseInt(config.get<string>('REDIS_PORT') || '6379', 10),
+          password: config.get<string>('REDIS_PASSWORD') || undefined,
+        },
+      }),
+    }),
     // Mongo
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
