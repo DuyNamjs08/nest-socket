@@ -4,17 +4,25 @@ import IORedis from 'ioredis';
 import { ProductClick } from './model/click-tracking.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { ClickCleanupProcessor } from './click-cleanup.processor';
 
 @Injectable()
 export class ClickProducerService {
   private queue: Queue;
+  private cleanupQueue: Queue;
 
   constructor(
     @Inject('REDIS_CLIENT') private readonly redis: IORedis,
     @InjectModel(ProductClick.name)
     private readonly productClickModel: Model<ProductClick>,
+    private readonly prisma: PrismaService,
+    private readonly clickCleanupProcessor: ClickCleanupProcessor,
   ) {
     this.queue = new Queue('click-queue', { connection: this.redis });
+    this.cleanupQueue = new Queue('cleanup-click-queue', {
+      connection: this.redis,
+    });
   }
 
   async sendClickEvent(event: any) {
@@ -31,16 +39,31 @@ export class ClickProducerService {
   }
 
   // flush DB được gọi từ service khác
-  async flushToMongo(data: any) {
+  async flushToDB(data: any) {
     const { user_email, clicked_at, ip, product_id, user_id, count } = data;
     try {
       if (count && count > 0) {
-        const updatedDoc = await this.productClickModel.findOneAndUpdate(
-          { product_id, user_id },
-          { $inc: { count: parseInt(count, 10) }, $set: { user_email, clicked_at, ip } },
-          { upsert: true, new: true },
-        ).lean()
-        await this.redis.del(`product:click:${data.product_id}`);
+        // const updatedDoc = await this.productClickModel
+        //   .findOneAndUpdate(
+        //     { product_id, user_id },
+        //     {
+        //       $inc: { count: parseInt(count, 10) },
+        //       $set: { user_email, clicked_at, ip },
+        //     },
+        //     { upsert: true, new: true },
+        //   )
+        //   .lean();
+        const updatedDoc = await this.prisma.products.update({
+          where: {
+            id: product_id,
+            user_id: user_id,
+          },
+          data: {
+            counts: { increment: parseInt(count, 10) },
+          },
+        });
+        // Xoá counter trong Redis
+        await this.redis.incr(`product:click:${user_id}:${product_id}`);
         return updatedDoc;
       }
     } catch (err) {
@@ -50,10 +73,25 @@ export class ClickProducerService {
   }
   async getListCountClickByUserProduct(data: any) {
     try {
-      const clicks = await this.productClickModel.find({ user_id: data.user_id });
+      const clicks = await this.productClickModel.find({
+        user_id: data.user_id,
+      });
       return clicks;
     } catch (err) {
       console.error('Failed to get click count from Mongo', err);
     }
+  }
+  async addCleanupJob() {
+    await this.cleanupQueue.add(
+      'cleanup',
+      {},
+      {
+        repeat: {
+          pattern: '*/2 * * * *', // mỗi 2 phút
+          tz: 'Asia/Ho_Chi_Minh',
+        },
+      },
+    );
+    // Lặp lại mỗi ngày lúc 0:00
   }
 }
