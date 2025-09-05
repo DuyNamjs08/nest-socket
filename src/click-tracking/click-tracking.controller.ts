@@ -10,7 +10,7 @@ export class ClickTrackingController {
 
     @Get(':user_id')
     async trackClickList(@Param('user_id') user_id: string) {
-        const result = await this.clickProducerService.getListCountClickByUserProduct(Number(user_id));
-        return result;
+        // const result = await this.clickProducerService.getListCountClickByUserProduct(Number(user_id));
+        return true;
     }
 }

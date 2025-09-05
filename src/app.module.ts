@@ -10,11 +10,11 @@ import { GoogleStrategy } from './google/google.strategy';
 import { HttpModule } from '@nestjs/axios';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { EventsGateway } from './gateway/events.gateway';
-import { MongooseModule } from '@nestjs/mongoose';
-import { MongoLoggerService } from './mongo/mongo.service';
+// import { MongooseModule } from '@nestjs/mongoose';
+// import { MongoLoggerService } from './mongo/mongo.service';
 import { ClickTrackingModule } from './click-tracking/click-tracking.module';
-import mongoConfig from './configs/mongo.config';
-import { ProductClick, ProductClickSchema } from './click-tracking/model/click-tracking.schema';
+// import mongoConfig from './configs/mongo.config';
+// import { ProductClick, ProductClickSchema } from './click-tracking/model/click-tracking.schema';
 import { RedisModule } from './redis/redis.module';
 import { BullModule } from '@nestjs/bullmq';
 
@@ -22,10 +22,10 @@ import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [PrismaModule, HttpModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [mongoConfig], // load file config
-    }),
+    // ConfigModule.forRoot({
+    //   isGlobal: true,
+    //   load: [mongoConfig],
+    // }),
     RedisModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -39,17 +39,17 @@ import { BullModule } from '@nestjs/bullmq';
       }),
     }),
     // Mongo
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const mongo = config.get('mongo'); // lấy từ mongo.config.ts
-        const uri = `mongodb://${mongo.user}:${mongo.password}@${mongo.host}:${mongo.port}/${mongo.db}?authSource=admin`;
-        return {
-          uri,
-        };
-      },
-    }),
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: (config: ConfigService) => {
+    //     const mongo = config.get('mongo'); // lấy từ mongo.config.ts
+    //     const uri = `mongodb://${mongo.user}:${mongo.password}@${mongo.host}:${mongo.port}/${mongo.db}?authSource=admin`;
+    //     return {
+    //       uri,
+    //     };
+    //   },
+    // }),
     // JWT
     JwtModule.registerAsync({
       imports: [ConfigModule,],
@@ -84,6 +84,8 @@ import { BullModule } from '@nestjs/bullmq';
     ClickTrackingModule,
   ],
   controllers: [AppController, AuthController],
-  providers: [AppService, GoogleStrategy, EventsGateway, MongoLoggerService],
+  providers: [AppService, GoogleStrategy, EventsGateway,
+    // MongoLoggerService
+  ],
 })
 export class AppModule { }

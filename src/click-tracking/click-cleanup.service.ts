@@ -6,24 +6,23 @@ import IORedis from 'ioredis';
 export class ClickCleanupService implements OnModuleInit {
   private cleanupQueue: Queue;
 
-  constructor(@Inject('REDIS_CLIENT') private readonly redis: IORedis) {}
+  constructor(@Inject('REDIS_CLIENT') private readonly redis: IORedis) { }
 
   onModuleInit() {
     this.cleanupQueue = new Queue('cleanup-click-queue', {
       connection: this.redis,
     });
 
-    // Thêm job chạy mỗi 2 phút
+    // Thêm job chạy mỗi 20 phút
     this.addCleanupJob();
   }
 
   async addCleanupJob() {
-    console.log('Adding cleanup job to run every 2 minutes');
     await this.cleanupQueue.add(
       'cleanup',
       {},
       {
-        repeat: { every: 2 * 60 * 1000 }, // 2 phút
+        repeat: { every: 20 * 60 * 1000 }, // 20 phút
       },
     );
   }

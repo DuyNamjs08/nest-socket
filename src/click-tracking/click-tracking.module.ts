@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ClickProducerService } from './click-tracking.service';
 import { ClickTrackingGateway } from './click-tracking.gateway';
-import { MongooseModule } from '@nestjs/mongoose';
+// import { MongooseModule } from '@nestjs/mongoose';
 import { RedisModule } from 'src/redis/redis.module';
-import {
-  ProductClick,
-  ProductClickSchema,
-} from './model/click-tracking.schema';
+// import {
+//   ProductClick,
+//   ProductClickSchema,
+// } from './model/click-tracking.schema';
 import { BullModule } from '@nestjs/bullmq';
 import { ClickConsumerProcessor } from './click-consumer.processor';
 import { ClickTrackingController } from './click-tracking.controller';
@@ -22,9 +22,9 @@ import { ClickCleanupService } from './click-cleanup.service';
       { name: 'cleanup-click-queue' },
     ),
     RedisModule,
-    MongooseModule.forFeature([
-      { name: ProductClick.name, schema: ProductClickSchema },
-    ]),
+    // MongooseModule.forFeature([
+    //   { name: ProductClick.name, schema: ProductClickSchema },
+    // ]),
   ],
   controllers: [ClickTrackingController],
   providers: [
@@ -41,4 +41,4 @@ import { ClickCleanupService } from './click-cleanup.service';
     ClickCleanupProcessor,
   ],
 })
-export class ClickTrackingModule {}
+export class ClickTrackingModule { }

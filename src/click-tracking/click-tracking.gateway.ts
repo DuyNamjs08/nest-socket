@@ -4,16 +4,11 @@ import {
   SubscribeMessage,
   MessageBody,
   ConnectedSocket,
-  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ClickProducerService } from './click-tracking.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-interface RateInfo {
-  count: number;
-  lastTime: number;
-}
 
 @WebSocketGateway({
   cors: { origin: '*' }, // ⚠️ production nên giới hạn domain
@@ -25,7 +20,7 @@ export class ClickTrackingGateway {
   constructor(
     private readonly clickProducer: ClickProducerService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   @SubscribeMessage('productClick')
   async handleProductClick(
@@ -52,6 +47,6 @@ export class ClickTrackingGateway {
     const ip =
       (client.handshake.headers['x-forwarded-for'] as string) ||
       client.handshake.address;
-    await this.clickProducer.sendClickEvent({ ...data, ip });
+    await this.clickProducer.sendClickEvent({ ...data, ip, count: product.counts });
   }
 }

@@ -16,12 +16,20 @@ export class ClickConsumerProcessor extends WorkerHost {
   }
 
   async process(job: Job) {
-    const { product_id, user_id, user_email, clicked_at } = job.data;
+    const { product_id, user_id, user_email, clicked_at, count } = job.data;
     try {
       // 1. Tăng counter Redis
-      const redisCount = await this.redis.incr(
-        `product:click:${user_id}:${product_id}`,
-      );
+      const redisKey = `product:click:${user_id}:${product_id}`;
+
+      // nếu key chưa có thì set = count truyền từ DB vào
+      const exists = await this.redis.exists(redisKey);
+      let redisCount: number;
+      if (!exists) {
+        redisCount = count + 1;
+        await this.redis.set(redisKey, redisCount);
+      } else {
+        redisCount = await this.redis.incr(redisKey);
+      }
       // 2. Flush vào Mongo
       const updatedDoc = await this.clickProducer.flushToDB({
         product_id,
